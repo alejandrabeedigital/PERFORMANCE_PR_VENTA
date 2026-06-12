@@ -265,6 +265,60 @@ except Exception as e:
     print(df_excel.head(80))
 
 df_excel.to_csv("tabla_efectos_marginales_excel_contacto.csv", index=False, sep=";", decimal=",")
+# =========================
+# GRÁFICO IMPORTANCIA VARIABLES
+# =========================
 
+import os
+import matplotlib.pyplot as plt
+
+OUT_FIG_DIR = "graficos_modelo"
+os.makedirs(OUT_FIG_DIR, exist_ok=True)
+
+df_plot = df_excel.copy()
+
+df_plot = df_plot[
+    df_plot["variable"].astype(str) != "const"
+].copy()
+
+df_plot["abs_impacto"] = df_plot["dy_dx_10000"].abs()
+
+df_plot = (
+    df_plot
+    .sort_values("abs_impacto", ascending=False)
+    .head(25)
+    .sort_values("dy_dx_10000")
+)
+
+plt.figure(figsize=(10, 8))
+
+plt.barh(
+    df_plot["variable"],
+    df_plot["dy_dx_10000"]
+)
+
+plt.axvline(0, linestyle="--")
+
+plt.title("Importancia de variables - efecto marginal aproximado")
+plt.xlabel("Cambio estimado por cada 10.000 registros")
+plt.ylabel("Variable")
+
+plt.tight_layout()
+
+nombre_grafico = (
+    "importancia_variables_venta.png"
+    if "venta" in __file__.lower()
+    else "importancia_variables_contacto.png"
+)
+
+plt.savefig(
+    os.path.join(OUT_FIG_DIR, nombre_grafico),
+    dpi=200,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(f"Gráfico de importancia guardado en: {os.path.join(OUT_FIG_DIR, nombre_grafico)}")
 print("\nGuardado: odds_ratios_modelo_contacto.csv")
 print("Guardado: tabla_efectos_marginales_excel_contacto.csv")

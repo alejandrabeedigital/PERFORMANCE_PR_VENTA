@@ -67,17 +67,29 @@ df_raw = pd.read_csv(ARCHIVO_IN, low_memory=False)
 print(f'Filas al cargar: {len(df_raw):,}')
 
 df_raw = add_common_features(df_raw)
+
+# IMPORTANTE:
+# No filtramos df_raw por ganada aquí.
+# Queremos guardar predicciones para TODO el universo.
+# Solo filtramos el target para entrenar/evaluar.
 df_raw[TARGET] = clean_numeric(df_raw[TARGET])
-df_raw = df_raw[df_raw[TARGET].isin([0, 1])].copy()
-df_raw[TARGET] = df_raw[TARGET].astype(int)
 
 if CONTACT_TARGET not in df_raw.columns:
     raise ValueError('No existe target_descuelgue_calc.')
 
-# Entrena venta post-contacto solo en contactados, pero predice para todo el universo.
-df_train = df_raw[df_raw[CONTACT_TARGET].eq(1)].copy()
+df_raw[CONTACT_TARGET] = clean_numeric(df_raw[CONTACT_TARGET]).fillna(0).astype(int)
+
+# Entrena venta post-contacto solo en contactados con target válido,
+# pero predice para todo el universo.
+df_train = df_raw[
+    df_raw[CONTACT_TARGET].eq(1) &
+    df_raw[TARGET].isin([0, 1])
+].copy()
+
+df_train[TARGET] = df_train[TARGET].astype(int)
+
 print(f'Filas universo total: {len(df_raw):,}')
-print(f'Filas train venta solo contactados: {len(df_train):,}')
+print(f'Filas train venta solo contactados y target válido: {len(df_train):,}')
 print(f'Tasa venta en contactados: {df_train[TARGET].mean():.6f}')
 
 features_num = ['q_rk_score', 'dias_desde_crea_reg']
@@ -269,4 +281,5 @@ print(df_coefs.head(30))
 df_raw.to_csv(ARCHIVO_OUT, index=False)
 joblib.dump(model, MODELO_OUT)
 print(f'\nGuardado CSV: {ARCHIVO_OUT}')
+print(f'Filas guardadas: {len(df_raw):,}')
 print(f'Guardado modelo: {MODELO_OUT}')

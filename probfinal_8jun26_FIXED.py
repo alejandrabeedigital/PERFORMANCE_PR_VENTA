@@ -81,33 +81,33 @@ if 'ganada' in df.columns:
         # Gráfico 1: tasa por decil
         plt.figure(figsize=(9, 5))
 
-        col_tasa = "tasa_descuelgue" if "tasa_descuelgue" in tabla.columns else "tasa_venta"
-
         plt.bar(
             tabla.index.astype(str),
-            tabla[col_tasa]
+            tabla["tasa_venta"]
         )
 
-        plt.title(f"{col_tasa} por decil (1 = TOP)")
+        plt.title("Tasa de venta final precontacto por decil (1 = TOP)")
         plt.xlabel("Decil")
-        plt.ylabel(col_tasa)
+        plt.ylabel("Tasa de venta")
 
         plt.tight_layout()
         plt.savefig(
-            os.path.join(OUT_FIG_DIR, f"{col_tasa}_por_decil.png"),
+            os.path.join(OUT_FIG_DIR, "tasa_venta_final_precontacto_por_decil.png"),
             dpi=200,
             bbox_inches="tight"
         )
         plt.show()
 
         # Gráfico 2: curva acumulada
-        df_eval_plot = df_eval.sort_values("score", ascending=False).reset_index(drop=True)
+        df_eval_plot = (
+            df_metricas
+            .sort_values("prob_final_venta_precontacto", ascending=False)
+            .reset_index(drop=True)
+        )
 
-        target_plot = TARGET
+        total_obj = df_eval_plot["ganada"].sum()
 
-        total_obj = df_eval_plot[target_plot].sum()
-
-        df_eval_plot["objetivo_acum"] = df_eval_plot[target_plot].cumsum()
+        df_eval_plot["objetivo_acum"] = df_eval_plot["ganada"].cumsum()
         df_eval_plot["pct_clientes"] = np.arange(1, len(df_eval_plot) + 1) / len(df_eval_plot)
         df_eval_plot["pct_objetivo"] = (
             df_eval_plot["objetivo_acum"] / total_obj
@@ -129,14 +129,14 @@ if 'ganada' in df.columns:
             label="Aleatorio"
         )
 
-        plt.title("Curva acumulada de captación")
+        plt.title("Curva acumulada de captación de ventas final precontacto")
         plt.xlabel("% registros priorizados")
-        plt.ylabel("% positivos captados")
+        plt.ylabel("% ventas captadas")
         plt.legend()
 
         plt.tight_layout()
         plt.savefig(
-            os.path.join(OUT_FIG_DIR, f"curva_acumulada_{target_plot}.png"),
+            os.path.join(OUT_FIG_DIR, "curva_acumulada_venta_final_precontacto.png"),
             dpi=200,
             bbox_inches="tight"
         )
@@ -153,3 +153,4 @@ if 'ganada' in df.columns:
 
 df.to_csv(OUT_CSV, index=False)
 print('\nCSV generado:', OUT_CSV)
+print('Filas guardadas:', len(df))
