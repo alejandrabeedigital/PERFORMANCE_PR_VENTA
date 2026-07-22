@@ -73,8 +73,8 @@ for c in num_cols:
 # 4. Filtro temporal pedido
 # =========================
 
-ini = pd.Timestamp("2026-04-14")
-fin = pd.Timestamp("2026-05-01")
+ini = pd.Timestamp("2026-05-01")
+fin = pd.Timestamp("2026-07-14")
 
 df_eval = df[
     (df["fe_carga"] >= ini) &
